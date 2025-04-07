@@ -3,106 +3,139 @@
 <html lang="zh-Hant">
 <head>
     <meta charset="UTF-8">
-    <!-- ✨ 修改 viewport Meta 標籤，禁止縮放 ✨ -->
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
-    <title>RO 風格三消小遊戲</title>
+    <title>RO消消樂</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
     <style>
         /* 基本佈局 */
-        html, body {
-            margin: 0;
-            padding: 0;
+        html, body { margin: 0; padding: 0; width: 100%; height: 100%; overflow: hidden; background-color: #f0f0f0; font-family: sans-serif; touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
+        body { display: flex; justify-content: center; align-items: center; min-height: 100vh; }
+
+        /* 畫面容器基礎樣式 (初始隱藏) */
+        .screen {
+            display: none; /* 預設隱藏 */
             width: 100%;
-            height: 100%;
-            overflow: hidden; /* 禁止頁面滾動 */
-            background-color: #f0f0f0;
-            font-family: sans-serif;
-            /* ✨ 嘗試用 CSS 輔助禁止觸控動作，例如雙擊縮放 ✨ */
-            touch-action: manipulation; /* 允許捲動(但已被overflow禁止)，禁用雙擊縮放等 */
-            -webkit-tap-highlight-color: transparent; /* 移除iOS點擊時的灰色背景 */
-        }
-        body {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            min-height: 100vh;
-        }
-        #game-container {
-            position: relative; /* 為了 Combo 文字定位 */
+            max-width: 480px; /* 限制最大寬度 */
+            padding: 20px;
+            box-sizing: border-box;
             text-align: center;
-            padding: 15px;
             background-color: rgba(255, 255, 255, 0.85);
             border-radius: 10px;
             box-shadow: 0 5px 15px rgba(0,0,0,0.2);
-            max-width: 95%;
-            box-sizing: border-box;
         }
-        /* 分數和移動次數的佈局 */
-        .game-info {
-            display: flex;
-            justify-content: space-around;
-            align-items: center;
-            margin-bottom: 10px;
+        /* 當前顯示的畫面 */
+        .screen.active {
+            display: block;
+        }
+
+        /* --- 開始畫面樣式 --- */
+        #start-screen h1 {
+             color: #5a3a1a; margin-bottom: 30px;
+        }
+        #start-screen .start-button {
+            display: block; /* 每個按鈕佔一行 */
+            width: 80%; /* 按鈕寬度 */
+            padding: 15px 20px;
+            margin: 15px auto; /* 上下間距，左右自動置中 */
             font-size: 1.2em;
             font-weight: bold;
+            color: white;
+            background-color: #7f6a4f; /* RO 風格按鈕顏色 */
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: background-color 0.2s, transform 0.1s;
+            box-shadow: 0 3px 5px rgba(0,0,0,0.2);
         }
-        #score-area, #moves-area {
-            color: #4a2a0a;
-            background-color: rgba(255, 255, 255, 0.6);
-            padding: 5px 12px;
-            border-radius: 5px;
-            min-width: 100px;
-            box-shadow: inset 0 1px 3px rgba(0,0,0,0.1);
+        #start-screen .start-button:hover { background-color: #5a4a3a; }
+        #start-screen .start-button:active { transform: scale(0.96); }
+        #continue-button { /* 預設可能隱藏，由 JS 控制 */
+            background-color: #5cb85c; /* 綠色表示繼續 */
         }
-        #score, #moves {
-            color: #e74c3c; /* 醒目紅色 */
-            min-width: 35px;
-            display: inline-block;
-            text-align: right;
-            margin-left: 5px;
+        #continue-button:hover { background-color: #4cae4c; }
+
+        /* --- 遊戲畫面樣式 (調整自原 #game-container) --- */
+        #game-screen { position: relative; /* Combo 定位用 */ }
+        .game-info { display: flex; justify-content: space-around; align-items: center; margin-bottom: 10px; font-size: 1.2em; font-weight: bold; }
+        #score-area, #moves-area { color: #4a2a0a; background-color: rgba(255, 255, 255, 0.6); padding: 5px 12px; border-radius: 5px; min-width: 100px; box-shadow: inset 0 1px 3px rgba(0,0,0,0.1); }
+        #score, #moves { color: #e74c3c; min-width: 35px; display: inline-block; text-align: right; margin-left: 5px; }
+        #game-board { border: 3px solid #a17a4d; display: inline-grid; margin-bottom: 15px; user-select: none; }
+        #combo-popup { /* ...樣式保留不變... */ }
+        #combo-popup.show { /* ...樣式保留不變... */ }
+        @keyframes combo-pop { /* ...樣式保留不變... */ }
+        #reset-button { /* ...樣式保留不變... */ } /* 這個按鈕可以考慮移到遊戲畫面的標題旁 */
+
+        /* --- 排行榜畫面樣式 --- */
+        #leaderboard-screen h2 { color: #5a3a1a; margin-bottom: 20px; }
+        #leaderboard-table { width: 100%; border-collapse: collapse; margin-bottom: 20px; }
+        #leaderboard-table th, #leaderboard-table td { border: 1px solid #ccc; padding: 8px 10px; text-align: left; }
+        #leaderboard-table th { background-color: #e8dcb A; font-weight: bold; }
+        #leaderboard-table td:first-child { width: 50px; text-align: center; font-weight: bold; } /* 排名 */
+        #leaderboard-table td:last-child { text-align: right; font-weight: bold; color: #c0392b; } /* 分數 */
+        #leaderboard-loading { font-style: italic; color: #888; }
+        .back-button { /* 返回按鈕樣式 (類似開始按鈕) */
+            display: inline-block; padding: 10px 25px; margin-top: 10px; font-size: 1em; font-weight: bold; color: white; background-color: #aaa;
+            border: none; border-radius: 5px; cursor: pointer; transition: background-color 0.2s;
         }
-        /* 遊戲盤樣式 (來自 style.css，這裡保留結構) */
-        #game-board {
-            border: 3px solid #a17a4d;
-            display: inline-grid; /* 必須是 grid */
-            margin-bottom: 15px;
-            user-select: none; /* 禁止選取文字 */
-            /* Grid 大小由 style.css 控制 */
-        }
-        /* Combo 彈出文字的樣式 (來自 style.css，這裡保留結構) */
-        #combo-popup {
-            position: absolute;
-            /* ... 其他樣式在 style.css ... */
-        }
-        #combo-popup.show {
-             /* ... 其他樣式在 style.css ... */
-        }
-        @keyframes combo-pop {
-             /* ... 其他樣式在 style.css ... */
-        }
+        .back-button:hover { background-color: #888; }
+
         /* 手機版調整 */
         @media (max-width: 400px) {
-            #game-container { padding: 10px; }
-            h1 { font-size: 1.5em; }
+            .screen { padding: 15px; }
+            h1 { font-size: 1.6em; }
             .game-info { font-size: 1em; }
-            /* 可能需要調整方塊大小或間距 */
+            #start-screen .start-button { width: 90%; padding: 12px 15px; font-size: 1.1em; }
+            #leaderboard-table th, #leaderboard-table td { padding: 6px 8px; font-size: 0.9em;}
         }
+
     </style>
 </head>
 <body>
-    <div id="game-container">
+
+    <!-- 開始畫面 -->
+    <div id="start-screen" class="screen active"> <!-- 預設顯示開始畫面 -->
         <h1>RO 三消樂</h1>
-        <div class="game-info">
+        <button id="new-game-button" class="start-button">新遊戲</button>
+        <button id="continue-button" class="start-button" style="display: none;">繼續遊戲</button> <!-- 預設隱藏 -->
+        <button id="leaderboard-button" class="start-button">排行榜</button>
+    </div>
+
+    <!-- 遊戲主畫面 -->
+    <div id="game-screen" class="screen">
+        <!-- 遊戲標題或狀態欄可以放這裡 -->
+         <div class="game-info">
             <div id="score-area">分數: <span id="score">0</span></div>
             <div id="moves-area">移動: <span id="moves">20</span></div>
         </div>
         <div id="game-board">
-            <!-- 遊戲方塊會由 JavaScript 動態產生在這裡 -->
+            <!-- 遊戲方塊 -->
         </div>
         <div id="combo-popup"></div>
         <button id="reset-button">重新開始</button>
+        <button id="back-to-start-button" class="back-button" style="margin-left: 10px;">回主選單</button> <!-- 新增回主選單按鈕 -->
     </div>
+
+    <!-- 排行榜畫面 -->
+    <div id="leaderboard-screen" class="screen">
+        <h2>🏆 排行榜 🏆</h2>
+        <div id="leaderboard-loading">讀取中...</div>
+        <table id="leaderboard-table" style="display: none;">
+            <thead>
+                <tr>
+                    <th>排名</th>
+                    <th>名稱</th>
+                    <th>分數</th>
+                </tr>
+            </thead>
+            <tbody>
+                <!-- 排行榜資料會由 JS 填入 -->
+            </tbody>
+        </table>
+        <button id="leaderboard-back-button" class="back-button">返回</button>
+    </div>
+
     <!-- JavaScript 檔案載入 -->
     <script src="{{ url_for('static', filename='js/game.js') }}"></script>
+
 </body>
 </html>
