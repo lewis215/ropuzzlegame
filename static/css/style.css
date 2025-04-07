@@ -1,0 +1,205 @@
+/* static/css/style.css */
+
+body {
+    font-family: 'Arial', sans-serif;
+    background-image: url('../images/background.jpg');
+    background-size: cover;
+    background-position: center;
+    color: #333;
+}
+
+#game-container {
+    /* ✨ 需要相對定位來容納 Combo 文字 ✨ */
+    position: relative;
+    /* 其他樣式保留 (背景、圓角、陰影...) */
+    text-align: center; padding: 15px; background-color: rgba(255, 255, 255, 0.85);
+    border-radius: 10px; box-shadow: 0 5px 15px rgba(0,0,0,0.2); max-width: 95%; box-sizing: border-box;
+}
+
+h1 {
+    color: #5a3a1a; /* 類似 RO 的標題顏色 */
+    margin-top: 0;
+    margin-bottom: 10px;
+    font-size: 1.8em;
+    /* 可以加上 RO Logo 旁邊的小圖示，例如用 ::before 偽元素 */
+}
+
+/* ✨ 分數和移動次數區域的佈局 ✨ */
+.game-info {
+    display: flex;
+    justify-content: space-around; /* 平均分配空間 */
+    align-items: center; /* 垂直居中 */
+    margin-bottom: 10px;
+    font-size: 1.2em; /* 可以調整字體大小 */
+    font-weight: bold;
+}
+#score-area, #moves-area {
+    color: #4a2a0a; /* 深棕色文字 */
+    background-color: rgba(255, 255, 255, 0.6); /* 半透明背景 */
+    padding: 5px 12px; /* 調整內邊距 */
+    border-radius: 5px; /* 小圓角 */
+    min-width: 100px; /* 給個最小寬度，避免跳動 */
+    box-shadow: inset 0 1px 3px rgba(0,0,0,0.1); /* 內陰影增加層次感 */
+}
+#score, #moves {
+    color: #e74c3c; /* 更亮的紅色，更醒目 */
+    min-width: 35px; /* 數字的最小寬度 */
+    display: inline-block; /* 讓 min-width 生效 */
+    text-align: right; /* 數字靠右對齊 */
+    margin-left: 5px; /* 與文字標籤稍微分開 */
+}
+
+#game-board {
+    /* ... (保留 Grid 設定) ... */
+    border: 3px solid #a17a4d;
+    background-color: rgba(255, 255, 255, 0.3);
+    border-radius: 5px;
+    position: relative;
+    overflow: hidden;
+    display: grid;
+    --tile-size: 50px; /* 使用 CSS 變數 */
+    grid-template-columns: repeat(8, var(--tile-size)); /* 8欄 */
+    grid-auto-rows: var(--tile-size); /* 行高 */
+    padding: 5px; /* 內邊距 */
+    gap: 2px; /* 格子間隙 */
+    margin-bottom: 15px; /* 和按鈕的間距 */
+    user-select: none; /* 禁止選取 */
+}
+
+.tile {
+    /* ... (保留大小、背景、動畫設定) ... */
+    width: var(--tile-size);
+    height: var(--tile-size);
+    background-size: contain;
+    background-repeat: no-repeat;
+    background-position: center;
+    cursor: pointer;
+    box-sizing: border-box;
+    border-radius: 4px;
+    transition: transform 0.2s ease-in-out, opacity 0.3s ease-in-out;
+    will-change: transform, opacity;
+}
+
+/* 佔位符的樣式 */
+.placeholder {
+    width: var(--tile-size);
+    height: var(--tile-size);
+    visibility: hidden;
+}
+
+
+.tile:hover {
+    transform: scale(1.1);
+    filter: brightness(1.1);
+}
+
+/* ✨ 選中方塊的樣式 ✨ */
+.tile-selected {
+    /* border: 3px solid #ff69b4; */ /* 用 outline 不影響佈局 */
+    outline: 3px solid #ff69b4;
+    outline-offset: -3px; /* 讓描邊在內部 */
+    transform: scale(0.95) !important;
+    box-shadow: 0 0 8px rgba(255, 105, 180, 0.7);
+    z-index: 10;
+}
+
+/* ✨ 方塊消除時的動畫樣式 ✨ */
+.tile-disappearing {
+    transform: scale(0);
+    opacity: 0;
+    transition: transform 0.3s cubic-bezier(0.55, 0.085, 0.68, 0.53), opacity 0.3s ease-out !important;
+    pointer-events: none;
+}
+
+/* ✨ 方塊掉落/生成時，從上方進入的初始狀態 ✨ */
+.tile-entering {
+    opacity: 0;
+    transform: translateY(-50px); /* 使用 --tile-size 可能更好: transform: translateY(calc(-1 * var(--tile-size))); */
+}
+
+/* ✨ 拖動時方塊的樣式 (可選) ✨ */
+.tile.dragging {
+    opacity: 0.7; /* 半透明一點 */
+    transform: scale(1.1); /* 稍微放大 */
+    box-shadow: 0 0 10px rgba(0,0,0,0.3); /* 加點陰影 */
+    z-index: 20 !important; /* 確保在最上層 */
+    cursor: grabbing; /* 改變滑鼠樣式 */
+}
+
+/* ✨ 各種 RO 方塊的背景圖 (非常重要!) ✨ */
+/* 請確保你有這些圖片，或者換成你有的圖片檔名 */
+.tile-poring { background-image: url('../images/poring.png'); }
+.tile-drops { background-image: url('../images/drops.png'); }
+.tile-poporing { background-image: url('../images/poporing.png'); }
+.tile-marin { background-image: url('../images/marin.png'); } /* 假設你有這張圖 */
+.tile-xporing { background-image: url('../images/xporing.png'); } /* 假設你有這張圖 */
+.tile-pouring { background-image: url('../images/pouring.png'); } /* 假設你有這張圖 */
+/* ... 你可以繼續添加更多種類的方塊樣式 ... */
+
+/* ✨ Combo 彈出文字的樣式 (初始隱藏) ✨ */
+#combo-popup {
+    position: absolute; /* 相對於 #game-container 定位 */
+    top: 45%; /* 稍微向上偏移一點 */
+    left: 50%;
+    transform: translate(-50%, -50%) scale(0.8); /* 初始狀態：居中偏小 */
+    background: linear-gradient(145deg, rgba(255, 100, 100, 0.85), rgba(180, 50, 200, 0.85)); /* 漸層背景 */
+    color: white;
+    padding: 15px 35px; /* 增加左右 padding */
+    border-radius: 50px; /* 橢圓形狀 */
+    font-size: clamp(1.8em, 5vw, 2.8em); /* 自適應字體大小 */
+    font-weight: bold;
+    text-shadow: 2px 2px 0px rgba(0, 0, 0, 0.4); /* 加粗陰影 */
+    border: 3px solid rgba(255, 255, 255, 0.5); /* 白色邊框 */
+    opacity: 0; /* 初始透明 */
+    visibility: hidden; /* 初始不可見且不佔空間 */
+    pointer-events: none; /* 不阻礙下方元素點擊 */
+    z-index: 100; /* 顯示在最上層 */
+    transition: opacity 0.2s ease-out, visibility 0s linear 0.2s, transform 0.2s ease-out; /* 淡出效果 (visibility 延遲消失) */
+}
+
+/* ✨ Combo 文字顯示時的樣式 + 動畫 ✨ */
+#combo-popup.show {
+    opacity: 1;
+    visibility: visible; /* 立即可見 */
+    transition-delay: 0s; /* 取消 visibility 的延遲 */
+    animation: combo-pop 0.4s cubic-bezier(0.68, -0.55, 0.27, 1.55) forwards; /* 應用彈跳動畫 */
+}
+
+/* ✨ 定義彈跳動畫 (放大 -> 超過 -> 回彈) ✨ */
+@keyframes combo-pop {
+    0% { transform: translate(-50%, -50%) scale(0.8); opacity: 0.8; }
+    50% { transform: translate(-50%, -50%) scale(1.2); opacity: 1; }
+    100% { transform: translate(-50%, -50%) scale(1); opacity: 1; }
+}
+
+#reset-button {
+    background-color: #7f6a4f; /* RO 風格按鈕顏色 */
+    color: white;
+    padding: 10px 20px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 1em;
+    font-weight: bold;
+    transition: background-color 0.2s, transform 0.1s;
+    margin-top: 10px; /* 和遊戲板分開一點 */
+}
+
+#reset-button:hover {
+    background-color: #5a4a3a;
+}
+
+#reset-button:active {
+    transform: scale(0.95); /* 按下去時縮小一點 */
+}
+
+#score-area {
+    font-size: 1.3em;
+    font-weight: bold;
+    color: #4a2a0a;
+    margin-bottom: 5px; /* 和遊戲板分開一點 */
+}
+
+#score {
+    color: #c0392b; /* 分數用醒目的顏色 */
+}

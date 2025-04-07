@@ -1,0 +1,108 @@
+<!-- templates/index.html -->
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+    <meta charset="UTF-8">
+    <!-- ✨ 修改 viewport Meta 標籤，禁止縮放 ✨ -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
+    <title>RO 風格三消小遊戲</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <style>
+        /* 基本佈局 */
+        html, body {
+            margin: 0;
+            padding: 0;
+            width: 100%;
+            height: 100%;
+            overflow: hidden; /* 禁止頁面滾動 */
+            background-color: #f0f0f0;
+            font-family: sans-serif;
+            /* ✨ 嘗試用 CSS 輔助禁止觸控動作，例如雙擊縮放 ✨ */
+            touch-action: manipulation; /* 允許捲動(但已被overflow禁止)，禁用雙擊縮放等 */
+            -webkit-tap-highlight-color: transparent; /* 移除iOS點擊時的灰色背景 */
+        }
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
+        #game-container {
+            position: relative; /* 為了 Combo 文字定位 */
+            text-align: center;
+            padding: 15px;
+            background-color: rgba(255, 255, 255, 0.85);
+            border-radius: 10px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+            max-width: 95%;
+            box-sizing: border-box;
+        }
+        /* 分數和移動次數的佈局 */
+        .game-info {
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+            margin-bottom: 10px;
+            font-size: 1.2em;
+            font-weight: bold;
+        }
+        #score-area, #moves-area {
+            color: #4a2a0a;
+            background-color: rgba(255, 255, 255, 0.6);
+            padding: 5px 12px;
+            border-radius: 5px;
+            min-width: 100px;
+            box-shadow: inset 0 1px 3px rgba(0,0,0,0.1);
+        }
+        #score, #moves {
+            color: #e74c3c; /* 醒目紅色 */
+            min-width: 35px;
+            display: inline-block;
+            text-align: right;
+            margin-left: 5px;
+        }
+        /* 遊戲盤樣式 (來自 style.css，這裡保留結構) */
+        #game-board {
+            border: 3px solid #a17a4d;
+            display: inline-grid; /* 必須是 grid */
+            margin-bottom: 15px;
+            user-select: none; /* 禁止選取文字 */
+            /* Grid 大小由 style.css 控制 */
+        }
+        /* Combo 彈出文字的樣式 (來自 style.css，這裡保留結構) */
+        #combo-popup {
+            position: absolute;
+            /* ... 其他樣式在 style.css ... */
+        }
+        #combo-popup.show {
+             /* ... 其他樣式在 style.css ... */
+        }
+        @keyframes combo-pop {
+             /* ... 其他樣式在 style.css ... */
+        }
+        /* 手機版調整 */
+        @media (max-width: 400px) {
+            #game-container { padding: 10px; }
+            h1 { font-size: 1.5em; }
+            .game-info { font-size: 1em; }
+            /* 可能需要調整方塊大小或間距 */
+        }
+    </style>
+</head>
+<body>
+    <div id="game-container">
+        <h1>RO 三消樂</h1>
+        <div class="game-info">
+            <div id="score-area">分數: <span id="score">0</span></div>
+            <div id="moves-area">移動: <span id="moves">20</span></div>
+        </div>
+        <div id="game-board">
+            <!-- 遊戲方塊會由 JavaScript 動態產生在這裡 -->
+        </div>
+        <div id="combo-popup"></div>
+        <button id="reset-button">重新開始</button>
+    </div>
+    <!-- JavaScript 檔案載入 -->
+    <script src="{{ url_for('static', filename='js/game.js') }}"></script>
+</body>
+</html>
