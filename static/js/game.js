@@ -27,7 +27,10 @@ document.addEventListener('DOMContentLoaded', () => {
     const leaderboardBackButton = document.getElementById('leaderboard-back-button');
     // 洗牌提示元素
     const shuffleIndicator = document.createElement('div');
-    shuffleIndicator.id = 'shuffle-indicator'; shuffleIndicator.textContent = '洗牌中...'; shuffleIndicator.style.cssText = 'display: none; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); padding: 10px 20px; background-color: rgba(0,0,0,0.7); color: white; border-radius: 5px; z-index: 150; pointer-events: none;';
+    shuffleIndicator.id = 'shuffle-indicator'; shuffleIndicator.textContent = '洗牌中...';
+    // 使用 CSS class 控制樣式
+    shuffleIndicator.style.display = 'none'; // JS 初始隱藏
+    // 在 CSS 中定義 #shuffle-indicator 的樣式 (position, top, left, transform, padding, background, color, etc.)
     gameScreen.appendChild(shuffleIndicator);
 
     // --- 遊戲狀態變數 ---
@@ -39,56 +42,149 @@ document.addEventListener('DOMContentLoaded', () => {
     function wait(ms) { return new Promise(resolve => setTimeout(resolve, ms)); }
 
     // --- 畫面管理函數 ---
-    function showScreen(screenToShow) { startScreen.classList.remove('active'); gameScreen.classList.remove('active'); leaderboardScreen.classList.remove('active'); screenToShow.classList.add('active'); /* console.log(`顯示畫面: ${screenToShow.id}`); */ }
+    function showScreen(screenToShow) {
+        startScreen.classList.remove('active'); gameScreen.classList.remove('active'); leaderboardScreen.classList.remove('active');
+        screenToShow.classList.add('active'); /* console.log(`顯示畫面: ${screenToShow.id}`); */
+    }
 
     // --- 初始化應用程式 ---
     function initializeApp() {
         console.log("應用程式初始化...");
+        isAnimating = false; // 確保解鎖
         if (loadGameProgress()) { continueButton.style.display = 'block'; }
         else { continueButton.style.display = 'none'; localStorage.removeItem('roMatch3Save'); }
         showScreen(startScreen); bindStartScreenEvents(); bindGameScreenEvents(); bindLeaderboardScreenEvents();
     }
 
     // --- 綁定開始畫面按鈕事件 ---
-    function bindStartScreenEvents() { if (newGameButton.dataset.listenerAttached !== 'true') { newGameButton.onclick = () => { if (localStorage.getItem('roMatch3Save')) { if (confirm("你有未完成的遊戲，確定要開始新遊戲嗎？")) { localStorage.removeItem('roMatch3Save'); startGame(false); } } else { startGame(false); } }; newGameButton.dataset.listenerAttached = 'true'; } if (continueButton.dataset.listenerAttached !== 'true') { continueButton.onclick = () => { startGame(true); }; continueButton.dataset.listenerAttached = 'true'; } if (leaderboardButton.dataset.listenerAttached !== 'true') { leaderboardButton.onclick = () => { showLeaderboard(); }; leaderboardButton.dataset.listenerAttached = 'true'; } }
+    function bindStartScreenEvents() {
+        if (newGameButton.dataset.listenerAttached !== 'true') {
+            newGameButton.onclick = () => {
+                if (isAnimating) return;
+                if (localStorage.getItem('roMatch3Save')) { if (confirm("你有未完成的遊戲，確定要開始新遊戲嗎？")) { localStorage.removeItem('roMatch3Save'); startGame(false); } }
+                else { startGame(false); }
+            }; newGameButton.dataset.listenerAttached = 'true';
+        }
+        if (continueButton.dataset.listenerAttached !== 'true') {
+            continueButton.onclick = () => { if (isAnimating) return; startGame(true); }; continueButton.dataset.listenerAttached = 'true';
+        }
+        if (leaderboardButton.dataset.listenerAttached !== 'true') {
+             leaderboardButton.onclick = () => { if (isAnimating) return; showLeaderboard(); }; leaderboardButton.dataset.listenerAttached = 'true';
+        }
+    }
+
     // --- 綁定遊戲畫面事件 ---
-    function bindGameScreenEvents() { resetButton.removeEventListener('click', handleResetButtonClick); resetButton.addEventListener('click', handleResetButtonClick); if (backToStartButton.dataset.listenerAttached !== 'true') { backToStartButton.onclick = () => { if (moveCount > 0 && !isAnimating) { if (confirm("確定要離開遊戲返回主選單嗎？進度會儲存。")) { saveGameProgress(); showScreen(startScreen); initializeApp(); } } else { showScreen(startScreen); initializeApp(); } }; backToStartButton.dataset.listenerAttached = 'true'; } }
+    function bindGameScreenEvents() {
+         resetButton.removeEventListener('click', handleResetButtonClick); resetButton.addEventListener('click', handleResetButtonClick);
+        if (backToStartButton.dataset.listenerAttached !== 'true') {
+            backToStartButton.onclick = () => {
+                if (moveCount > 0 && !isAnimating) { if (confirm("確定要離開遊戲返回主選單嗎？進度會儲存。")) { saveGameProgress(); showScreen(startScreen); initializeApp(); } }
+                else { showScreen(startScreen); initializeApp(); }
+            }; backToStartButton.dataset.listenerAttached = 'true';
+        }
+    }
+
     // --- 重置按鈕處理函數 ---
-    function handleResetButtonClick() { if (isAnimating && moveCount > 0) { alert("遊戲處理中！"); return; } console.log("點擊重置按鈕"); if (confirm("確定要重新開始嗎？")) { localStorage.removeItem('roMatch3Save'); isAnimating = false; startGame(false); } }
+    function handleResetButtonClick() {
+        if (isAnimating && moveCount > 0) { alert("遊戲處理中！"); return; }
+        console.log("點擊重置按鈕");
+        if (confirm("確定要重新開始嗎？")) {
+            localStorage.removeItem('roMatch3Save');
+            isAnimating = false; // 強制解鎖
+            startGame(false); // 開始新遊戲
+        }
+    }
+
     // --- 綁定排行榜畫面事件 ---
-    function bindLeaderboardScreenEvents() { if (leaderboardBackButton.dataset.listenerAttached !== 'true') { leaderboardBackButton.onclick = () => { isAnimating = false; showScreen(startScreen); initializeApp(); }; leaderboardBackButton.dataset.listenerAttached = 'true'; } }
+    function bindLeaderboardScreenEvents() {
+        if (leaderboardBackButton.dataset.listenerAttached !== 'true') {
+            leaderboardBackButton.onclick = () => {
+                 isAnimating = false; // 從排行榜返回時解鎖
+                 showScreen(startScreen);
+                 initializeApp(); // 重新檢查按鈕狀態
+            }; leaderboardBackButton.dataset.listenerAttached = 'true';
+        }
+    }
 
     // --- 顯示排行榜 (讀取資料) ---
-    async function showLeaderboard() { showScreen(leaderboardScreen); leaderboardTbody.innerHTML = ''; leaderboardTable.style.display = 'none'; leaderboardLoading.style.display = 'block'; leaderboardLoading.textContent = '讀取中...'; try { const response = await fetch('/leaderboard_data'); if (!response.ok) { let errorMsg = `HTTP 錯誤！狀態: ${response.status}`; try { const errorData = await response.json(); if(errorData && errorData.error) errorMsg += ` - ${errorData.error}`; } catch (jsonError) {} throw new Error(errorMsg); } const data = await response.json(); if (data.error) { leaderboardLoading.textContent = `讀取失敗: ${data.error}`; } else if (!Array.isArray(data)) { console.error("排行榜資料格式錯誤:", data); leaderboardLoading.textContent = '讀取錯誤 (格式錯誤)。'; } else if (data.length === 0) { leaderboardLoading.textContent = '目前還沒有排行榜紀錄喔！'; } else { data.forEach((entry, index) => { const row = leaderboardTbody.insertRow(); row.insertCell(0).textContent = index + 1; row.insertCell(1).textContent = entry.name; row.insertCell(2).textContent = entry.score; }); leaderboardTable.style.display = 'table'; leaderboardLoading.style.display = 'none'; } } catch (error) { console.error('無法獲取排行榜資料:', error); leaderboardLoading.textContent = `讀取排行榜時發生錯誤: ${error.message}`; } }
+    async function showLeaderboard() {
+        showScreen(leaderboardScreen); leaderboardTbody.innerHTML = ''; leaderboardTable.style.display = 'none';
+        leaderboardLoading.style.display = 'block'; leaderboardLoading.textContent = '讀取中...';
+        try {
+            const response = await fetch('/leaderboard_data');
+            if (!response.ok) { let errorMsg = `HTTP 錯誤！狀態: ${response.status}`; try { const errorData = await response.json(); if(errorData && errorData.error) errorMsg += ` - ${errorData.error}`; } catch (jsonError) {} throw new Error(errorMsg); }
+            const data = await response.json();
+            if (data.error) { leaderboardLoading.textContent = `讀取失敗: ${data.error}`; }
+            else if (!Array.isArray(data)) { console.error("排行榜資料格式錯誤:", data); leaderboardLoading.textContent = '讀取錯誤 (格式錯誤)。'; }
+            else if (data.length === 0) { leaderboardLoading.textContent = '目前還沒有排行榜紀錄喔！'; }
+            else { data.forEach((entry, index) => { const row = leaderboardTbody.insertRow(); row.insertCell(0).textContent = index + 1; row.insertCell(1).textContent = entry.name; row.insertCell(2).textContent = entry.score; }); leaderboardTable.style.display = 'table'; leaderboardLoading.style.display = 'none'; }
+        } catch (error) { console.error('無法獲取排行榜資料:', error); leaderboardLoading.textContent = `讀取排行榜時發生錯誤: ${error.message}`; }
+    }
 
      // --- 開始遊戲 ---
-     function startGame(loadSave) { console.log(`開始遊戲，是否載入存檔: ${loadSave}`); showScreen(gameScreen); isAnimating = false; initGame(loadSave); }
+     function startGame(loadSave) {
+         console.log(`開始遊戲，載入存檔: ${loadSave}`);
+         showScreen(gameScreen);
+         isAnimating = false; // 確保開始前是解鎖狀態
+         initGame(loadSave);
+     }
 
     // --- 核心函數：初始化遊戲 ---
     async function initGame(loadSave = false) {
         console.log("--- 初始化遊戲 ---"); isAnimating = true;
-        gameBoardElement.innerHTML = ''; tiles = []; board = []; score = 0; moveCount = INITIAL_MOVES; currentComboCount = 0; draggingTileInfo = null; isDragging = false; hideComboPopup(true); shuffleIndicator.style.display = 'none';
-        let loadedSuccessfully = false;
-        if (loadSave) { const savedGame = loadGameProgress(); if (savedGame) { console.log("載入有效存檔..."); board = savedGame.board; score = savedGame.score; moveCount = savedGame.moveCount; loadedSuccessfully = true; } else { console.log("找不到有效存檔，開始新遊戲..."); } }
-        if (!loadedSuccessfully) { console.log("創建新遊戲版面..."); board = createInitialBoard(); if (!board || board.length === 0) { console.error("錯誤：createInitialBoard"); isAnimating = false; gameBoardElement.innerHTML = '<p>初始化失敗！</p>'; return; } score = 0; moveCount = INITIAL_MOVES; }
-        updateScoreDisplay(); updateMovesDisplay(); renderBoard(true); console.log(`遊戲開始 - 分數: ${score}, 移動次數: ${moveCount}`);
-        await handleInitialMatches();
-        if (!isAnimating && !hasPossibleMoves()) { console.log("初始盤面無可移動步數，執行洗牌..."); await reshuffleBoard(); }
-        else { isAnimating = false; } // 如果有步數或已在洗牌中處理，確保解鎖
-        saveGameProgress(); console.log("--- 遊戲初始化完成 ---");
+        let shouldBeAnimating = true; // Track if animation lock should remain
+
+        try {
+            gameBoardElement.innerHTML = ''; tiles = []; board = []; score = 0; moveCount = INITIAL_MOVES; currentComboCount = 0; draggingTileInfo = null; isDragging = false; hideComboPopup(true); shuffleIndicator.style.display = 'none';
+            let loadedSuccessfully = false;
+            if (loadSave) {
+                const savedGame = loadGameProgress(); // Already checks moveCount > 0
+                if (savedGame) { console.log("載入有效存檔..."); board = savedGame.board; score = savedGame.score; moveCount = savedGame.moveCount; loadedSuccessfully = true; }
+                else { console.log("找不到有效存檔，開始新遊戲..."); }
+            }
+            if (!loadedSuccessfully) {
+                 console.log("創建新遊戲版面..."); board = createInitialBoard();
+                 if (!board) { throw new Error("createInitialBoard 未能創建有效版面！"); }
+                 score = 0; moveCount = INITIAL_MOVES;
+            }
+            updateScoreDisplay(); updateMovesDisplay(); renderBoard(true); console.log(`遊戲開始 - 分數: ${score}, 移動次數: ${moveCount}`);
+
+            // Check for possible moves after initial setup or load
+            if (!hasPossibleMoves()) {
+                 console.warn("初始/載入盤面無可移動步數，執行洗牌...");
+                 await reshuffleBoard(); // reshuffleBoard handles its own animation lock
+                 shouldBeAnimating = false; // Reshuffle completion handles unlock
+            } else {
+                shouldBeAnimating = false; // Normal init completion, unlock
+            }
+
+            saveGameProgress();
+            console.log("--- 遊戲初始化完成 ---");
+
+        } catch (error) {
+            console.error("初始化遊戲時發生錯誤:", error);
+            gameBoardElement.innerHTML = `<p style="color: red;">遊戲初始化失敗: ${error.message}</p>`;
+            shouldBeAnimating = false; // Unlock on error
+        } finally {
+             if (!shouldBeAnimating) {
+                 isAnimating = false;
+                 // console.log("初始化流程結束，解鎖動畫");
+             }
+        }
     }
 
-    // --- 創建初始數據版面 (嘗試避免死局) ---
+    // --- 創建初始數據版面 (保證有解) ---
     function createInitialBoard() {
         let newBoard; let attempts = 0; const maxAttempts = 100; let hasMoves = false;
         do {
             newBoard = []; attempts++;
             for (let y = 0; y < BOARD_HEIGHT; y++) { const row = []; for (let x = 0; x < BOARD_WIDTH; x++) { let type; let generationAttempts = 0; const maxGenerationAttempts = 10; do { type = getRandomTileType(); generationAttempts++; if (generationAttempts > maxGenerationAttempts) break; } while ( (x >= 2 && row[x - 1] === type && row[x - 2] === type) || (y >= 2 && newBoard[y - 1]?.[x] === type && newBoard[y - 2]?.[x] === type) ); row.push(type); } newBoard.push(row); }
-            const immediateMatches = typeof checkMatchesOnBoard === 'function' ? checkMatchesOnBoard(newBoard) : [];
-            const originalBoard = board; board = newBoard; hasMoves = typeof hasPossibleMoves === 'function' ? hasPossibleMoves() : true; board = originalBoard; // 恢復
-            if (attempts > maxAttempts) { console.error("超過最大嘗試次數生成初始版面！"); break; }
+            const immediateMatches = checkMatchesOnBoard(newBoard);
+            if (immediateMatches.length === 0) { const originalBoard = board; board = newBoard; hasMoves = hasPossibleMoves(); board = originalBoard; }
+            else { hasMoves = false; }
+            if (attempts > maxAttempts) { console.error("超過最大嘗試次數生成初始版面！返回 null"); return null; }
         } while (immediateMatches.length > 0 || !hasMoves);
-        console.log(`創建了初始版面 (嘗試 ${attempts} 次) - 是否有可移動步數: ${hasMoves}`);
+        // console.log(`創建了初始版面 (嘗試 ${attempts} 次) - 有可移動步數: ${hasMoves}`);
         return newBoard;
     }
 
@@ -110,23 +206,29 @@ document.addEventListener('DOMContentLoaded', () => {
     // --- 處理交換邏輯與動畫 ---
     async function processSwap(tile1Info, tile2Info) {
         if (isAnimating) return; isAnimating = true; currentComboCount = 0; hideComboPopup();
-        // console.log(`處理交換: (${tile1Info.x}, ${tile1Info.y}) <=> (${tile2Info.x}, ${tile2Info.y})`);
-        await animateVisualSwap(tile1Info, tile2Info); // Step 1: Play visual swap
-        const tempType = board[tile1Info.y][tile1Info.x]; board[tile1Info.y][tile1Info.x] = board[tile2Info.y][tile2Info.x]; board[tile2Info.y][tile2Info.x] = tempType; // Step 2: Swap data
-        const matches = checkMatchesOnBoard(board); // Check matches
-        if (matches.length > 0) { // Step 3: If match...
-            // console.log("交換有效！");
-            moveCount--; updateMovesDisplay();
-            const tile1Element = tile1Info.element; const tile2Element = tile2Info.element; tiles[tile1Info.y][tile1Info.x] = tile2Element; tiles[tile2Info.y][tile2Info.x] = tile1Element;
-            tile1Element.dataset.x = tile1Info.x; tile1Element.dataset.y = tile1Info.y; tile2Element.dataset.x = tile2Info.x; tile2Element.dataset.y = tile2Info.y; renderBoard();
-            await wait(50); await handleMatchesAndRefill(true); saveGameProgress();
-            // isAnimating and checkGameOver are handled at the end of handleMatchesAndRefill
-        } else { // Step 3: If no match...
-            // console.log("交換無效，回彈...");
-            board[tile2Info.y][tile2Info.x] = board[tile1Info.y][tile1Info.x]; board[tile1Info.y][tile1Info.x] = tempType; // Revert data
-            await animateVisualSwap(tile2Info, tile1Info); // Play visual swap back
-            isAnimating = false; // Unlock after revert animation
-            // No need to checkGameOver for invalid swap
+        let shouldCheckGameOver = false;
+        try {
+            await animateVisualSwap(tile1Info, tile2Info);
+            const tempType = board[tile1Info.y][tile1Info.x]; board[tile1Info.y][tile1Info.x] = board[tile2Info.y][tile2Info.x]; board[tile2Info.y][tile2Info.x] = tempType;
+            const matches = checkMatchesOnBoard(board);
+            if (matches.length > 0) {
+                moveCount--; updateMovesDisplay();
+                const tile1Element = tile1Info.element; const tile2Element = tile2Info.element; tiles[tile1Info.y][tile1Info.x] = tile2Element; tiles[tile2Info.y][tile2Info.x] = tile1Element;
+                tile1Element.dataset.x = tile1Info.x; tile1Element.dataset.y = tile1Info.y; tile2Element.dataset.x = tile2Info.x; tile2Element.dataset.y = tile2Info.y; renderBoard();
+                await wait(50);
+                await handleMatchesAndRefill(true); // This handles its own isAnimating and checkGameOver
+                saveGameProgress();
+                // No need to set shouldCheckGameOver = true here
+            } else {
+                board[tile2Info.y][tile2Info.x] = board[tile1Info.y][tile1Info.x]; board[tile1Info.y][tile1Info.x] = tempType;
+                await animateVisualSwap(tile2Info, tile1Info);
+                isAnimating = false; // Unlock after invalid swap animation
+                shouldCheckGameOver = true; // Check game over after invalid swap attempt
+            }
+        } catch(error) {
+             console.error("ProcessSwap 出錯:", error); isAnimating = false; shouldCheckGameOver = true;
+        } finally {
+             if (shouldCheckGameOver && !isAnimating) { checkGameOver(); }
         }
     }
 
@@ -138,38 +240,39 @@ document.addEventListener('DOMContentLoaded', () => {
     // --- 核心流程：處理匹配、掉落、填充 ---
     async function handleMatchesAndRefill(isInitialMove = false) {
         let matches = checkMatchesOnBoard(board); let totalScoreGainedThisTurn = 0; let iteration = 0; const maxIterations = 20;
-        let needsReshuffle = false; // 標記是否需要在結束時洗牌
+        let needsReshuffle = false;
+        isAnimating = true; // Lock at the beginning of the sequence
+        try {
+            while (matches.length > 0 && iteration < maxIterations) {
+                iteration++; const previousComboCount = currentComboCount; currentComboCount += matches.length;
+                let scoreGained = 0; const allMatchedPositions = matches.flat(); const uniquePositions = Array.from(new Set(allMatchedPositions.map(p => `${p.x},${p.y}`))).map(s => { const [x, y] = s.split(','); return {x: parseInt(x), y: parseInt(y)}; });
+                scoreGained = uniquePositions.length * 10; score += scoreGained; totalScoreGainedThisTurn += scoreGained; updateScoreDisplay();
+                let movesGained = 0;
+                if (isInitialMove && iteration === 1) { if (uniquePositions.length === 4) { movesGained = 1; } else if (uniquePositions.length >= 5) { movesGained = 2; } }
+                if (previousComboCount < 3 && currentComboCount >= 3) { movesGained += 1; } if (previousComboCount < 5 && currentComboCount >= 5) { movesGained += 1; }
+                if (movesGained > 0) { moveCount += movesGained; updateMovesDisplay(); }
+                if (currentComboCount >= 2) { showComboPopup(currentComboCount); }
+                await animateDisappear(uniquePositions);
+                uniquePositions.forEach(tilePos => { if(board[tilePos.y]?.[tilePos.x]) board[tilePos.y][tilePos.x] = null; });
+                await dropAndRefillBoard(); matches = checkMatchesOnBoard(board);
+                if (matches.length > 0) { await wait(ANIMATION_DURATION_MS_SWAP / 2); }
+            }
+            if (iteration >= maxIterations) { console.error("達最大連鎖"); renderBoard(); }
 
-        while (matches.length > 0 && iteration < maxIterations) {
-            iteration++; isAnimating = true; const previousComboCount = currentComboCount; currentComboCount += matches.length; /* console.log(`連鎖 ${iteration} (${matches.length}組), 總 Combo: ${currentComboCount}`); */
-            let scoreGained = 0; const allMatchedPositions = matches.flat(); const uniquePositions = Array.from(new Set(allMatchedPositions.map(p => `${p.x},${p.y}`))).map(s => { const [x, y] = s.split(','); return {x: parseInt(x), y: parseInt(y)}; });
-            scoreGained = uniquePositions.length * 10; score += scoreGained; totalScoreGainedThisTurn += scoreGained; updateScoreDisplay();
-            let movesGained = 0;
-            if (isInitialMove && iteration === 1) { if (uniquePositions.length === 4) { movesGained = 1; } else if (uniquePositions.length >= 5) { movesGained = 2; } }
-            if (previousComboCount < 3 && currentComboCount >= 3) { movesGained += 1; } if (previousComboCount < 5 && currentComboCount >= 5) { movesGained += 1; }
-            if (movesGained > 0) { moveCount += movesGained; updateMovesDisplay(); /* console.log(`獲得 ${movesGained} 次移動`); */ }
-            if (currentComboCount >= 2) { showComboPopup(currentComboCount); }
-            await animateDisappear(uniquePositions);
-            uniquePositions.forEach(tilePos => { if(board[tilePos.y]?.[tilePos.x]) board[tilePos.y][tilePos.x] = null; });
-            await dropAndRefillBoard(); matches = checkMatchesOnBoard(board);
-            if (matches.length > 0) { await wait(ANIMATION_DURATION_MS_SWAP / 2); }
+            if (!hasPossibleMoves()) {
+                console.log("盤面無可移動步數，執行洗牌..."); needsReshuffle = true;
+                await reshuffleBoard(); // reshuffleBoard handles its own isAnimating lock/unlock
+            }
+        } catch (error) {
+            console.error("handleMatchesAndRefill 出錯:", error);
+            needsReshuffle = false; // Ensure unlock and check on error
+        } finally {
+            if (!needsReshuffle) { // Only unlock and check if NOT reshuffling (reshuffle handles its own unlock)
+               isAnimating = false;
+               // console.log("連鎖/檢查流程結束");
+               checkGameOver();
+            }
         }
-        if (iteration >= maxIterations) { console.error("達最大連鎖"); renderBoard(); }
-
-        // ✨ 在所有連鎖反應結束後，檢查是否有可移動步數 ✨
-        if (!isAnimating && !hasPossibleMoves()) { // 確保不在動畫中（雖然理論上應該結束了）
-            console.log("盤面無可移動步數，執行洗牌...");
-            needsReshuffle = true;
-            await reshuffleBoard(); // 洗牌函數內部會處理 isAnimating
-        }
-
-        // ✨ 只有在 *沒有* 進行洗牌的情況下才解鎖動畫和檢查結束 ✨
-        if (!needsReshuffle) {
-           isAnimating = false;
-           console.log("連鎖反應結束，解除動畫鎖定");
-           checkGameOver(); // 在這裡檢查最終的 moveCount
-        }
-        // 如果進行了洗牌，isAnimating 會在 reshuffleBoard 內部解鎖
     }
 
     // --- 動畫函數：方塊消除動畫 ---
@@ -188,51 +291,51 @@ document.addEventListener('DOMContentLoaded', () => {
     async function animateNewTiles(newTilesInfo, duration) { if (newTilesInfo.length === 0) return; const appearPromises = newTilesInfo.map(info => { return new Promise(resolve => { if (tiles[info.y]?.[info.x]?.classList.contains('tile')) { const tileElement = tiles[info.y][info.x]; tileElement.classList.add('tile-entering'); requestAnimationFrame(() => { requestAnimationFrame(() => { tileElement.style.transition = `transform ${duration}ms ease-out, opacity ${duration}ms ease-out`; tileElement.classList.remove('tile-entering'); setTimeout(() => { tileElement.style.transition = ''; resolve(); }, duration); }); }); } else { /* console.warn(`新方塊動畫未找到元素(${info.x}, ${info.y})`); */ resolve(); } }); }); await Promise.all(appearPromises); }
 
     // --- 檢查是否有任何可能的移動 ---
-    function hasPossibleMoves() {
-        for (let y = 0; y < BOARD_HEIGHT; y++) { for (let x = 0; x < BOARD_WIDTH; x++) {
-            if (x < BOARD_WIDTH - 1) { if (canSwapCreateMatch(x, y, x + 1, y)) return true; }
-            if (y < BOARD_HEIGHT - 1) { if (canSwapCreateMatch(x, y, x, y + 1)) return true; }
-        } } /* console.log("盤面無可移動步數"); */ return false;
-    }
+    function hasPossibleMoves() { for (let y = 0; y < BOARD_HEIGHT; y++) { for (let x = 0; x < BOARD_WIDTH; x++) { if (x < BOARD_WIDTH - 1) { if (canSwapCreateMatch(x, y, x + 1, y)) return true; } if (y < BOARD_HEIGHT - 1) { if (canSwapCreateMatch(x, y, x, y + 1)) return true; } } } /* console.log("盤面無可移動步數"); */ return false; }
     // --- 檢查特定交換是否能產生匹配 ---
-    function canSwapCreateMatch(x1, y1, x2, y2) {
-        const type1 = board[y1]?.[x1]; const type2 = board[y2]?.[x2]; if (!type1 || !type2) return false;
-        // 模擬交換
-        board[y1][x1] = type2; board[y2][x2] = type1;
-        let createsMatch = checkMatchesAfterSimulatedSwap(x1, y1) || checkMatchesAfterSimulatedSwap(x2, y2);
-        // 換回來！
-        board[y1][x1] = type1; board[y2][x2] = type2;
-        return createsMatch;
-    }
+    function canSwapCreateMatch(x1, y1, x2, y2) { const type1 = board[y1]?.[x1]; const type2 = board[y2]?.[x2]; if (!type1 || !type2) return false; board[y1][x1] = type2; board[y2][x2] = type1; let createsMatch = checkMatchesAfterSimulatedSwap(x1, y1) || checkMatchesAfterSimulatedSwap(x2, y2); board[y1][x1] = type1; board[y2][x2] = type2; return createsMatch; }
     // --- 僅檢查指定座標周圍是否形成三消 ---
-    function checkMatchesAfterSimulatedSwap(x, y) {
-        const type = board[y]?.[x]; if (!type) return false;
-        // 水平檢查
-        if ((board[y]?.[x - 1] === type && board[y]?.[x - 2] === type) || (board[y]?.[x - 1] === type && board[y]?.[x + 1] === type) || (board[y]?.[x + 1] === type && board[y]?.[x + 2] === type)) return true;
-        // 垂直檢查
-        if ((board[y - 1]?.[x] === type && board[y - 2]?.[x] === type) || (board[y - 1]?.[x] === type && board[y + 1]?.[x] === type) || (board[y + 1]?.[x] === type && board[y + 2]?.[x] === type)) return true;
-        return false;
-    }
+    function checkMatchesAfterSimulatedSwap(x, y) { const type = board[y]?.[x]; if (!type) return false; if ((board[y]?.[x - 1] === type && board[y]?.[x - 2] === type) || (board[y]?.[x - 1] === type && board[y]?.[x + 1] === type) || (board[y]?.[x + 1] === type && board[y]?.[x + 2] === type)) return true; if ((board[y - 1]?.[x] === type && board[y - 2]?.[x] === type) || (board[y - 1]?.[x] === type && board[y + 1]?.[x] === type) || (board[y + 1]?.[x] === type && board[y + 2]?.[x] === type)) return true; return false; }
     // --- 檢查整個版面的匹配 (用於實際消除) ---
     function checkMatchesOnBoard(targetBoard) { const allMatches = []; if (!targetBoard || targetBoard.length !== BOARD_HEIGHT || !targetBoard[0] || targetBoard[0].length !== BOARD_WIDTH) { console.error("checkMatches 無效 board"); return allMatches; } for (let y = 0; y < BOARD_HEIGHT; y++) { for (let x = 0; x < BOARD_WIDTH - 2; ) { const type = targetBoard[y]?.[x]; if (!type || !TILE_TYPES.includes(type)) { x++; continue; } let match = [{x, y}]; for (let i = x + 1; i < BOARD_WIDTH; i++) { if (targetBoard[y]?.[i] === type) { match.push({x: i, y: y}); } else { break; } } if (match.length >= 3) { allMatches.push(match); x += match.length; } else { x++; } } } for (let x = 0; x < BOARD_WIDTH; x++) { for (let y = 0; y < BOARD_HEIGHT - 2; ) { const type = targetBoard[y]?.[x]; if (!type || !TILE_TYPES.includes(type)) { y++; continue; } let match = [{x, y}]; for (let i = y + 1; i < BOARD_HEIGHT; i++) { if (targetBoard[i]?.[x] === type) { match.push({x: x, y: i}); } else { break; } } if (match.length >= 3) { allMatches.push(match); y += match.length; } else { y++; } } } return allMatches; }
 
     // --- 洗牌邏輯與動畫 ---
     async function reshuffleBoard() {
-        isAnimating = true; shuffleIndicator.style.display = 'block'; console.log("開始洗牌...");
-        // 1. 淡出動畫
-        const fadeOutPromises = []; gameBoardElement.childNodes.forEach(node => { if (node.classList?.contains('tile')) { fadeOutPromises.push(new Promise(resolve => { node.style.transition = `opacity ${ANIMATION_DURATION_MS_RESHUFFLE * 0.4}ms ease-out`; node.style.opacity = '0'; setTimeout(resolve, ANIMATION_DURATION_MS_RESHUFFLE * 0.4); })); } }); await Promise.all(fadeOutPromises); gameBoardElement.innerHTML = '';
-        // 2. 生成有解的新盤面
-        let attempts = 0; const maxReshuffleAttempts = 10;
-        do { board = createInitialBoard(); attempts++; if (attempts > maxReshuffleAttempts) { console.error("洗牌多次無解！"); alert("盤面卡住，需要重新開始 T_T"); isAnimating = false; startGame(false); return; } } while (!hasPossibleMoves());
-        console.log(`洗牌完成 (嘗試 ${attempts} 次)`);
-        // 3. 渲染新盤面
-        renderBoard();
-        // 4. 新方塊進入動畫
-        const allNewTilesInfo = []; for (let y = 0; y < BOARD_HEIGHT; y++) { for (let x = 0; x < BOARD_WIDTH; x++) { if (board[y][x]) { allNewTilesInfo.push({ x, y, type: board[y][x] }); } } }
-        await animateNewTiles(allNewTilesInfo, ANIMATION_DURATION_MS_RESHUFFLE);
-        shuffleIndicator.style.display = 'none'; isAnimating = false; console.log("洗牌結束。");
-        // 洗牌後不需要檢查遊戲結束
+        isAnimating = true; // Lock at the beginning
+        shuffleIndicator.style.display = 'block'; // Use class: shuffleIndicator.classList.add('show');
+        shuffleIndicator.style.opacity = '1'; // Make visible if using direct style
+        console.log("開始洗牌...");
+        try {
+            // Fade out animation
+            const fadeOutPromises = []; gameBoardElement.childNodes.forEach(node => { if (node.classList?.contains('tile')) { fadeOutPromises.push(new Promise(resolve => { node.style.transition = `opacity ${ANIMATION_DURATION_MS_RESHUFFLE * 0.4}ms ease-out`; node.style.opacity = '0'; setTimeout(resolve, ANIMATION_DURATION_MS_RESHUFFLE * 0.4); })); } }); await Promise.all(fadeOutPromises); gameBoardElement.innerHTML = '';
+            // Generate new board with possible moves
+            let attempts = 0; const maxReshuffleAttempts = 10; let newBoard;
+            do { newBoard = createInitialBoard(); attempts++; if (attempts > maxReshuffleAttempts) { throw new Error("洗牌多次後仍無法生成有解的版面！"); } } while (!newBoard || !hasPossibleMovesProxy(newBoard));
+            board = newBoard; console.log(`洗牌完成 (嘗試 ${attempts} 次)`);
+            // Render and animate new tiles
+            renderBoard();
+            const allNewTilesInfo = []; for (let y = 0; y < BOARD_HEIGHT; y++) { for (let x = 0; x < BOARD_WIDTH; x++) { if (board[y][x]) { allNewTilesInfo.push({ x, y, type: board[y][x] }); } } }
+            await animateNewTiles(allNewTilesInfo, ANIMATION_DURATION_MS_RESHUFFLE);
+        } catch (error) {
+            console.error("洗牌過程中發生錯誤:", error);
+            alert("哎呀，洗牌時好像出錯了，需要重新開始遊戲 T_T");
+            localStorage.removeItem('roMatch3Save');
+            // Ensure unlock before starting new game
+            isAnimating = false;
+            startGame(false); // Force restart
+            return; // Stop further execution in this failed reshuffle attempt
+        } finally {
+             // Hide shuffle indicator using opacity and visibility for transition
+             shuffleIndicator.style.transition = `opacity ${ANIMATION_DURATION_MS_RESHUFFLE * 0.3}ms ease-out, visibility 0s linear ${ANIMATION_DURATION_MS_RESHUFFLE * 0.3}ms`;
+             shuffleIndicator.style.opacity = '0';
+             shuffleIndicator.style.visibility = 'hidden';
+             isAnimating = false; // Unlock after successful reshuffle and animation
+             console.log("洗牌結束，解除動畫鎖定。");
+             // No checkGameOver needed after reshuffle
+        }
     }
+    // --- hasPossibleMoves 的代理函數 ---
+    function hasPossibleMovesProxy(targetBoard) { const originalBoard = board; board = targetBoard; const result = hasPossibleMoves(); board = originalBoard; return result; }
 
     // --- 更新分數和移動次數顯示 ---
     function updateScoreDisplay() { scoreElement.textContent = score; }
@@ -253,8 +356,11 @@ document.addEventListener('DOMContentLoaded', () => {
                  else if (playerName !== null && playerName.trim() === ""){ alert("名字不能是空白喔！將不會記錄分數。"); }
                  else { alert("未記錄分數，返回主選單。"); }
                  localStorage.removeItem('roMatch3Save');
-                 if(shouldShowLeaderboard) { await showLeaderboard(); /* isAnimating 保持 true */ }
-                 else { showScreen(startScreen); initializeApp(); isAnimating = false; }
+                 if(shouldShowLeaderboard) {
+                     await showLeaderboard(); // Keep isAnimating true
+                 } else {
+                     showScreen(startScreen); initializeApp(); isAnimating = false; // Unlock if not showing leaderboard
+                 }
             }, 500); return true;
         } return false;
     }
@@ -266,10 +372,8 @@ document.addEventListener('DOMContentLoaded', () => {
     // --- 儲存/載入遊戲進度 ---
     function saveGameProgress() { if (isAnimating) return; if (!board || board.length !== BOARD_HEIGHT || !board[0] || board[0].length !== BOARD_WIDTH) { console.warn("嘗試儲存無效 board"); return; } const gameState = { board: board, score: score, moveCount: moveCount }; try { localStorage.setItem('roMatch3Save', JSON.stringify(gameState)); } catch (e) { console.error("儲存失敗:", e); } }
     function loadGameProgress() { const savedState = localStorage.getItem('roMatch3Save'); if (savedState) { try { const parsedState = JSON.parse(savedState); if (parsedState && Array.isArray(parsedState.board) && parsedState.board.length === BOARD_HEIGHT && parsedState.board.every(row => Array.isArray(row) && row.length === BOARD_WIDTH) && typeof parsedState.score === 'number' && (parsedState.moveCount === undefined || typeof parsedState.moveCount === 'number') ) { if (parsedState.moveCount === undefined || parsedState.moveCount > 0) { /* console.log("讀取有效且可繼續的進度"); */ if (parsedState.moveCount === undefined) parsedState.moveCount = INITIAL_MOVES; return parsedState; } else { console.log("存檔移動次數已耗盡"); localStorage.removeItem('roMatch3Save'); return null; } } else { console.warn("存檔格式錯誤"); localStorage.removeItem('roMatch3Save'); } } catch (e) { console.error("讀取失敗:", e); localStorage.removeItem('roMatch3Save'); } } return null; }
-    // --- 重置按鈕處理函數 ---
-    // 已在 bindGameScreenEvents 綁定
-    // --- 處理初始匹配 ---
-    async function handleInitialMatches() { /* console.log("檢查初始匹配..."); */ isAnimating = true; let initialMatches = checkMatchesOnBoard(board); if (initialMatches.length > 0) { console.warn(`初始匹配 ${initialMatches.length} 組`); await handleMatchesAndRefill(false); console.log("初始匹配處理完成。"); } else { /* console.log("初始版面無匹配。"); */ } isAnimating = false; }
+    // --- 處理初始匹配 (現在已不需要) ---
+    async function handleInitialMatches() { /* console.log("跳過初始匹配檢查"); */ return Promise.resolve(); }
 
     // --- 應用程式啟動點 ---
     initializeApp();
