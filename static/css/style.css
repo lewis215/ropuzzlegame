@@ -2,174 +2,66 @@
 
 /* --- 基本樣式 --- */
 html, body {
-    margin: 0;
-    padding: 0;
-    width: 100%;
-    height: 100%;
-    overflow: hidden; /* 禁止頁面滾動 */
-    background-color: #f0f0f0; /* 預設背景色 */
-    font-family: 'Arial', sans-serif; /* 基礎字體 */
-    touch-action: manipulation; /* 禁止雙擊縮放等手勢 */
-    -webkit-tap-highlight-color: transparent; /* 移除 iOS 點擊高亮 */
-    background-image: url('../images/background.jpg'); /* 背景圖 */
-    background-size: cover;
-    background-position: center;
-    color: #333; /* 預設文字顏色 */
+    margin: 0; padding: 0; width: 100%; height: 100%;
+    overflow: hidden; background-color: #f0f0f0; font-family: 'Arial', sans-serif;
+    touch-action: manipulation; -webkit-tap-highlight-color: transparent;
+    background-image: url('../images/background.jpg'); background-size: cover;
+    background-position: center; color: #333;
 }
 
-body {
-    display: flex;
-    justify-content: center; /* 水平置中內容 */
-    align-items: center; /* 垂直置中內容 */
-    min-height: 100vh; /* 確保 body 至少和視窗一樣高 */
-}
+body { display: flex; justify-content: center; align-items: center; min-height: 100vh; }
 
 /* --- 畫面容器 --- */
 .screen {
-    display: none; /* 預設隱藏所有畫面 */
-    width: 100%;
-    max-width: 480px; /* 限制畫面最大寬度 */
-    padding: 20px;
-    box-sizing: border-box; /* padding 和 border 計算在寬度內 */
-    text-align: center; /* 內部元素預設置中 */
-    background-color: rgba(255, 255, 255, 0.88); /* 半透明背景 */
-    border-radius: 12px; /* 圓角 */
-    box-shadow: 0 6px 18px rgba(0,0,0,0.25); /* 陰影效果 */
+    display: none; width: 100%; max-width: 480px; padding: 20px;
+    box-sizing: border-box; text-align: center; background-color: rgba(255, 255, 255, 0.88);
+    border-radius: 12px; box-shadow: 0 6px 18px rgba(0,0,0,0.25);
 }
-
-.screen.active {
-    display: block; /* 顯示當前活動的畫面 */
-}
+.screen.active { display: block; }
 
 /* --- 標題樣式 --- */
-h1, h2 {
-    color: #5a3a1a; /* 深棕色標題 */
-    margin-top: 0;
-    margin-bottom: 25px; /* 標題和內容的間距 */
-}
+h1, h2 { color: #5a3a1a; margin-top: 0; margin-bottom: 25px; }
 h1 { font-size: 1.8em; }
 h2 { font-size: 1.6em; }
 
-
-/* --- 開始畫面 spécifique --- */
+/* --- 開始畫面 specific --- */
 #start-screen .start-button {
-    display: block;
-    width: 80%;
-    padding: 15px 20px;
-    margin: 18px auto; /* 增加按鈕間距 */
-    font-size: 1.2em;
-    font-weight: bold;
-    color: white;
-    background-color: #7f6a4f; /* 基礎按鈕顏色 */
-    border: none;
-    border-radius: 8px;
-    cursor: pointer;
-    transition: background-color 0.2s, transform 0.1s;
-    box-shadow: 0 3px 5px rgba(0,0,0,0.2);
+    display: block; width: 80%; padding: 15px 20px; margin: 18px auto;
+    font-size: 1.2em; font-weight: bold; color: white; background-color: #7f6a4f;
+    border: none; border-radius: 8px; cursor: pointer;
+    transition: background-color 0.2s, transform 0.1s; box-shadow: 0 3px 5px rgba(0,0,0,0.2);
 }
 #start-screen .start-button:hover { background-color: #5a4a3a; }
 #start-screen .start-button:active { transform: scale(0.96); }
-/* 繼續遊戲按鈕特定樣式 */
 #continue-button { background-color: #5cb85c; }
 #continue-button:hover { background-color: #4cae4c; }
 
-
-/* --- 遊戲畫面 spécifique --- */
-#game-screen { position: relative; /* 為了 Combo 彈出文字定位 */ }
-
-.game-info {
-    display: flex;
-    justify-content: space-around;
-    align-items: center;
-    margin-bottom: 15px;
-    font-size: 1.2em;
-    font-weight: bold;
-}
-#score-area, #moves-area {
-    color: #4a2a0a;
-    background-color: rgba(255, 255, 255, 0.65);
-    padding: 6px 14px; /* 調整 padding */
-    border-radius: 6px;
-    min-width: 110px; /* 調整最小寬度 */
-    box-shadow: inset 0 1px 3px rgba(0,0,0,0.1);
-}
-#score, #moves {
-    color: #e74c3c; /* 數字顏色 */
-    min-width: 35px;
-    display: inline-block;
-    text-align: right;
-    margin-left: 6px;
-}
+/* --- 遊戲畫面 specific --- */
+#game-screen { position: relative; }
+.game-info { display: flex; justify-content: space-around; align-items: center; margin-bottom: 15px; font-size: 1.2em; font-weight: bold; }
+#score-area, #moves-area { color: #4a2a0a; background-color: rgba(255, 255, 255, 0.65); padding: 6px 14px; border-radius: 6px; min-width: 110px; box-shadow: inset 0 1px 3px rgba(0,0,0,0.1); }
+#score, #moves { color: #e74c3c; min-width: 35px; display: inline-block; text-align: right; margin-left: 6px; }
 
 #game-board {
-    border: 3px solid #a17a4d; /* 遊戲盤邊框 */
-    background-color: rgba(255, 255, 255, 0.3); /* 遊戲盤背景 */
-    border-radius: 5px;
-    position: relative; /* 相對定位 */
-    overflow: hidden; /* 隱藏超出內容 */
-    display: grid; /* 使用 Grid 佈局 */
-    /* 使用 CSS 變數定義格子大小 */
-    --tile-size: 50px; /* 可以根據需要調整 */
-    grid-template-columns: repeat(8, var(--tile-size)); /* 8 列 */
-    grid-auto-rows: var(--tile-size); /* 自動行高 */
-    padding: 5px; /* 內邊距 */
-    gap: 2px; /* 格子之間的間隙 */
-    margin: 0 auto 15px auto; /* 水平置中，下方間距 */
-    user-select: none; /* 禁止選取方塊 */
-    -webkit-user-select: none; /* Safari/Chrome */
-    -moz-user-select: none; /* Firefox */
-    -ms-user-select: none; /* IE/Edge */
-    display: inline-grid; /* 讓寬度由內容決定，配合 text-align:center */
+    border: 3px solid #a17a4d; background-color: rgba(255, 255, 255, 0.3); border-radius: 5px;
+    position: relative; overflow: hidden; display: grid;
+    --tile-size: 50px; grid-template-columns: repeat(8, var(--tile-size)); grid-auto-rows: var(--tile-size);
+    padding: 5px; gap: 2px; margin: 0 auto 15px auto; user-select: none; -webkit-user-select: none; -moz-user-select: none; -ms-user-select: none; display: inline-grid;
 }
 
 /* --- 方塊樣式 --- */
 .tile {
-    width: var(--tile-size);
-    height: var(--tile-size);
-    background-size: contain; /* 圖片填滿格子 */
-    background-repeat: no-repeat;
-    background-position: center;
-    cursor: grab; /* 拖動樣式 */
-    box-sizing: border-box;
-    border-radius: 4px; /* 方塊圓角 */
-    /* 基礎動畫過渡 */
-    transition: transform 0.2s ease-in-out, opacity 0.3s ease-in-out;
-    will-change: transform, opacity; /* 效能優化提示 */
+    width: var(--tile-size); height: var(--tile-size); background-size: contain; background-repeat: no-repeat;
+    background-position: center; cursor: grab; box-sizing: border-box; border-radius: 4px;
+    transition: transform 0.2s ease-in-out, opacity 0.3s ease-in-out; will-change: transform, opacity;
 }
-.tile:active { cursor: grabbing; } /* 按下時的樣式 */
+.tile:active { cursor: grabbing; }
+.placeholder { width: var(--tile-size); height: var(--tile-size); visibility: hidden; }
+.tile.dragging { opacity: 0.7; transform: scale(1.1); box-shadow: 0 0 10px rgba(0,0,0,0.3); z-index: 20 !important; cursor: grabbing; }
+.tile-disappearing { transform: scale(0); opacity: 0; transition: transform 0.4s cubic-bezier(0.55, 0.085, 0.68, 0.53), opacity 0.4s ease-out !important; pointer-events: none; }
+.tile-entering { opacity: 0; transform: translateY(-50px); }
 
-/* 佔位符樣式 */
-.placeholder {
-    width: var(--tile-size);
-    height: var(--tile-size);
-    visibility: hidden; /* 不可見但佔位 */
-}
-
-/* 方塊拖動時樣式 */
-.tile.dragging {
-    opacity: 0.7;
-    transform: scale(1.1);
-    box-shadow: 0 0 10px rgba(0,0,0,0.3);
-    z-index: 20 !important;
-    cursor: grabbing;
-}
-
-/* 方塊消除動畫 */
-.tile-disappearing {
-    transform: scale(0);
-    opacity: 0;
-    transition: transform 0.4s cubic-bezier(0.55, 0.085, 0.68, 0.53), opacity 0.4s ease-out !important; /* 持續時間 0.4 秒 */
-    pointer-events: none; /* 動畫期間不可交互 */
-}
-
-/* 方塊進入動畫初始狀態 */
-.tile-entering {
-    opacity: 0;
-    transform: translateY(-50px); /* 從上方進入 */
-}
-
-/* --- 各種方塊背景圖 --- */
-/* 請確保圖片路徑正確 */
+/* --- 方塊背景圖 --- */
 .tile-poring { background-image: url('../images/poring.png'); }
 .tile-drops { background-image: url('../images/drops.png'); }
 .tile-poporing { background-image: url('../images/poporing.png'); }
@@ -177,131 +69,65 @@ h2 { font-size: 1.6em; }
 .tile-xporing { background-image: url('../images/xporing.png'); }
 .tile-pouring { background-image: url('../images/pouring.png'); }
 
+/* --- Combo / 洗牌提示 --- */
+#combo-popup, #shuffle-indicator {
+    position: absolute; top: 45%; left: 50%; transform: translate(-50%, -50%) scale(0.8);
+    background: linear-gradient(145deg, rgba(255, 100, 100, 0.9), rgba(180, 50, 200, 0.9));
+    color: white; padding: 15px 35px; border-radius: 50px; font-size: clamp(1.8em, 5vw, 2.8em);
+    font-weight: bold; text-shadow: 3px 3px 0px rgba(0, 0, 0, 0.45); border: 4px solid rgba(255, 255, 255, 0.6);
+    opacity: 0; visibility: hidden; pointer-events: none; z-index: 100;
+    transition: opacity 0.2s ease-out, visibility 0s linear 0.2s, transform 0.2s ease-out;
+}
+#shuffle-indicator { /* 洗牌提示的特定樣式 */
+    background: rgba(0, 0, 0, 0.75); /* 深色背景 */
+    font-size: 1.2em; /* 稍小字體 */
+    padding: 12px 25px;
+    border-radius: 8px;
+    border: none;
+    text-shadow: none;
+    z-index: 150; /* 比 Combo 高 */
+}
+#combo-popup.show, #shuffle-indicator.show { /* 使用 .show 控制顯示 */
+    opacity: 1; visibility: visible; transition-delay: 0s;
+}
+#combo-popup.show { animation: combo-pop 0.4s cubic-bezier(0.68, -0.55, 0.27, 1.55) forwards; }
+/* Shuffle indicator 不需要彈跳，只需要淡入即可 */
+#shuffle-indicator.show { transform: translate(-50%, -50%) scale(1); }
 
-/* --- Combo 彈出文字 --- */
-#combo-popup {
-    position: absolute;
-    top: 45%; /* 位置微調 */
-    left: 50%;
-    transform: translate(-50%, -50%) scale(0.8); /* 初始居中偏小 */
-    background: linear-gradient(145deg, rgba(255, 100, 100, 0.9), rgba(180, 50, 200, 0.9)); /* 調整透明度和顏色 */
-    color: white;
-    padding: 15px 35px;
-    border-radius: 50px; /* 橢圓形狀 */
-    font-size: clamp(1.8em, 5vw, 2.8em); /* 自適應字體 */
-    font-weight: bold;
-    text-shadow: 3px 3px 0px rgba(0, 0, 0, 0.45); /* 加強陰影 */
-    border: 4px solid rgba(255, 255, 255, 0.6); /* 加粗邊框 */
-    opacity: 0;
-    visibility: hidden;
-    pointer-events: none;
-    z-index: 100;
-    transition: opacity 0.2s ease-out, visibility 0s linear 0.2s, transform 0.2s ease-out; /* 淡出效果 */
-}
-#combo-popup.show {
-    opacity: 1;
-    visibility: visible;
-    transition-delay: 0s;
-    animation: combo-pop 0.4s cubic-bezier(0.68, -0.55, 0.27, 1.55) forwards; /* 彈跳動畫 */
-}
-@keyframes combo-pop {
-    0% { transform: translate(-50%, -50%) scale(0.8); opacity: 0.8; }
-    50% { transform: translate(-50%, -50%) scale(1.2); opacity: 1; }
-    100% { transform: translate(-50%, -50%) scale(1); opacity: 1; }
-}
+@keyframes combo-pop { 0% { transform: translate(-50%, -50%) scale(0.8); opacity: 0.8; } 50% { transform: translate(-50%, -50%) scale(1.2); opacity: 1; } 100% { transform: translate(-50%, -50%) scale(1); opacity: 1; } }
 
-
-/* --- 排行榜畫面 spécifique --- */
-.leaderboard-table-container {
-    max-height: 400px; /* 排行榜最大高度 */
-    overflow-y: auto; /* 啟用垂直滾動條 */
-    border: 1px solid #ddd; /* 容器邊框 */
-    margin-bottom: 20px; /* 與下方按鈕間距 */
-    background-color: rgba(255, 255, 255, 0.4); /* 容器背景 */
-    border-radius: 4px; /* 容器圓角 */
-}
-#leaderboard-table {
-    width: 100%;
-    border-collapse: collapse; /* 合併邊框 */
-}
-#leaderboard-table th,
-#leaderboard-table td {
-    border: 1px solid #ccc;
-    padding: 8px 12px; /* 調整單元格 padding */
-    text-align: left;
-    vertical-align: middle; /* 垂直居中 */
-}
-#leaderboard-table th {
-    background-color: #e8dcbA; /* 表頭背景色 */
-    font-weight: bold;
-    position: sticky; /* 固定表頭 */
-    top: 0; /* 固定在頂部 */
-    z-index: 1; /* 確保在滾動內容之上 */
-    box-shadow: 0 2px 2px -1px rgba(0, 0, 0, 0.1); /* 給表頭加點陰影 */
-}
-#leaderboard-table td:first-child { /* 排名列 */
-    width: 50px;
-    text-align: center;
-    font-weight: bold;
-}
-#leaderboard-table td:nth-child(2) { /* 名字列 */
-    word-break: break-all; /* 名字太長時自動換行 */
-}
-#leaderboard-table td:last-child { /* 分數列 */
-    text-align: right;
-    font-weight: bold;
-    color: #c0392b;
-}
-#leaderboard-loading {
-    font-style: italic;
-    color: #777; /* 調整顏色 */
-    margin: 30px 0; /* 增加上下間距 */
-}
+/* --- 排行榜畫面 specific --- */
+.leaderboard-table-container { max-height: 400px; overflow-y: auto; border: 1px solid #ddd; margin-bottom: 20px; background-color: rgba(255, 255, 255, 0.4); border-radius: 4px; }
+#leaderboard-table { width: 100%; border-collapse: collapse; }
+#leaderboard-table th, #leaderboard-table td { border: 1px solid #ccc; padding: 8px 12px; text-align: left; vertical-align: middle; }
+#leaderboard-table th { background-color: #e8dcbA; font-weight: bold; position: sticky; top: 0; z-index: 1; box-shadow: 0 2px 2px -1px rgba(0, 0, 0, 0.1); }
+#leaderboard-table td:first-child { width: 50px; text-align: center; font-weight: bold; }
+#leaderboard-table td:nth-child(2) { word-break: break-all; }
+#leaderboard-table td:last-child { text-align: right; font-weight: bold; color: #c0392b; }
+#leaderboard-loading { font-style: italic; color: #777; margin: 30px 0; }
 
 /* --- 通用按鈕樣式 --- */
-/* 遊戲內重置按鈕 */
-#reset-button {
-    background-color: #d9534f; /* 使用紅色表示重置/危險操作 */
-    color: white;
-    padding: 10px 20px;
-    border: none;
-    border-radius: 5px;
-    cursor: pointer;
-    font-size: 1em;
-    font-weight: bold;
-    transition: background-color 0.2s, transform 0.1s;
+.game-controls { /* 遊戲內按鈕容器 */
+    margin-top: 10px;
 }
+#reset-button { background-color: #d9534f; color: white; padding: 10px 20px; border: none; border-radius: 5px; cursor: pointer; font-size: 1em; font-weight: bold; transition: background-color 0.2s, transform 0.1s; }
 #reset-button:hover { background-color: #c9302c; }
 #reset-button:active { transform: scale(0.95); }
-
-/* 返回按鈕 */
-.back-button {
-    display: inline-block;
-    padding: 10px 25px;
-    margin-top: 10px; /* 與上方元素間距 */
-    font-size: 1em;
-    font-weight: bold;
-    color: #555; /* 按鈕文字顏色 */
-    background-color: #f0f0f0; /* 按鈕背景 */
-    border: 1px solid #ccc; /* 按鈕邊框 */
-    border-radius: 5px;
-    cursor: pointer;
-    transition: background-color 0.2s, border-color 0.2s;
-}
+.back-button { display: inline-block; padding: 10px 25px; margin-top: 10px; font-size: 1em; font-weight: bold; color: #555; background-color: #f0f0f0; border: 1px solid #ccc; border-radius: 5px; cursor: pointer; transition: background-color 0.2s, border-color 0.2s; }
 .back-button:hover { background-color: #e6e6e6; border-color: #adadad; }
 .back-button:active { background-color: #d4d4d4; }
 
-
-/* --- 響應式設計 (手機版調整) --- */
-@media (max-width: 480px) { /* 調整斷點 */
+/* --- 響應式設計 --- */
+@media (max-width: 480px) {
     .screen { padding: 15px; }
     h1 { font-size: 1.6em; margin-bottom: 20px; }
     h2 { font-size: 1.4em; margin-bottom: 15px; }
     .game-info { font-size: 1em; }
     #start-screen .start-button { width: 90%; padding: 12px 15px; font-size: 1.1em; margin: 12px auto; }
-    #game-board { --tile-size: clamp(35px, 11vw, 45px); padding: 3px; gap: 1px; } /* 讓格子大小自適應 */
-    .leaderboard-table-container { max-height: calc(100vh - 250px); } /* 高度動態計算 */
+    #game-board { --tile-size: clamp(35px, 11vw, 45px); padding: 3px; gap: 1px; }
+    .leaderboard-table-container { max-height: calc(100vh - 280px); } /* 調整手機高度 */
     #leaderboard-table th, #leaderboard-table td { padding: 6px 8px; font-size: 0.9em;}
     #reset-button, .back-button { padding: 8px 18px; font-size: 0.9em; }
-    #combo-popup { font-size: clamp(1.6em, 4.5vw, 2.5em); padding: 12px 30px; }
+    #combo-popup, #shuffle-indicator { font-size: clamp(1.6em, 4.5vw, 2.5em); padding: 12px 30px; }
+    #shuffle-indicator { font-size: 1.1em; padding: 10px 20px; }
 }

@@ -3,86 +3,10 @@
 <html lang="zh-Hant">
 <head>
     <meta charset="UTF-8">
-    <!-- 禁止頁面縮放 -->
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
     <title>RO 三消樂</title>
-    <!-- 載入 CSS 檔案 -->
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
-    <style>
-        /* 基本佈局和內聯樣式 (建議將這些也移到 style.css) */
-        html, body {
-            margin: 0; padding: 0; width: 100%; height: 100%;
-            overflow: hidden; /* 禁止頁面滾動 */
-            background-color: #f0f0f0; font-family: sans-serif;
-            touch-action: manipulation; /* 禁止雙擊縮放等手勢 */
-            -webkit-tap-highlight-color: transparent; /* 移除 iOS 點擊高亮 */
-        }
-        body { display: flex; justify-content: center; align-items: center; min-height: 100vh; }
-
-        /* 畫面容器基礎樣式 (初始隱藏) */
-        .screen {
-            display: none; /* 預設隱藏 */
-            width: 100%;
-            max-width: 480px; /* 限制內容最大寬度 */
-            padding: 20px;
-            box-sizing: border-box;
-            text-align: center;
-            background-color: rgba(255, 255, 255, 0.85);
-            border-radius: 10px;
-            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
-        }
-        /* 當前顯示的畫面 */
-        .screen.active { display: block; }
-
-        /* --- 開始畫面樣式 --- */
-        #start-screen h1 { color: #5a3a1a; margin-bottom: 30px; }
-        #start-screen .start-button { display: block; width: 80%; padding: 15px 20px; margin: 15px auto; font-size: 1.2em; font-weight: bold; color: white; background-color: #7f6a4f; border: none; border-radius: 8px; cursor: pointer; transition: background-color 0.2s, transform 0.1s; box-shadow: 0 3px 5px rgba(0,0,0,0.2); }
-        #start-screen .start-button:hover { background-color: #5a4a3a; }
-        #start-screen .start-button:active { transform: scale(0.96); }
-        #continue-button { background-color: #5cb85c; }
-        #continue-button:hover { background-color: #4cae4c; }
-
-        /* --- 遊戲畫面樣式 --- */
-        #game-screen { position: relative; }
-        .game-info { display: flex; justify-content: space-around; align-items: center; margin-bottom: 10px; font-size: 1.2em; font-weight: bold; }
-        #score-area, #moves-area { color: #4a2a0a; background-color: rgba(255, 255, 255, 0.6); padding: 5px 12px; border-radius: 5px; min-width: 100px; box-shadow: inset 0 1px 3px rgba(0,0,0,0.1); }
-        #score, #moves { color: #e74c3c; min-width: 35px; display: inline-block; text-align: right; margin-left: 5px; }
-        #game-board { border: 3px solid #a17a4d; display: inline-grid; margin-bottom: 15px; user-select: none; /* Grid 大小由 style.css 控制 */ }
-        /* Combo 彈出文字樣式 - 應移至 style.css */
-        #combo-popup { position: absolute; top: 45%; left: 50%; transform: translate(-50%, -50%) scale(0.8); background: linear-gradient(145deg, rgba(255, 100, 100, 0.85), rgba(180, 50, 200, 0.85)); color: white; padding: 15px 35px; border-radius: 50px; font-size: clamp(1.8em, 5vw, 2.8em); font-weight: bold; text-shadow: 2px 2px 0px rgba(0, 0, 0, 0.4); border: 3px solid rgba(255, 255, 255, 0.5); opacity: 0; visibility: hidden; pointer-events: none; z-index: 100; transition: opacity 0.2s ease-out, visibility 0s linear 0.2s, transform 0.2s ease-out; }
-        #combo-popup.show { opacity: 1; visibility: visible; transition-delay: 0s; animation: combo-pop 0.4s cubic-bezier(0.68, -0.55, 0.27, 1.55) forwards; }
-        @keyframes combo-pop { 0% { transform: translate(-50%, -50%) scale(0.8); opacity: 0.8; } 50% { transform: translate(-50%, -50%) scale(1.2); opacity: 1; } 100% { transform: translate(-50%, -50%) scale(1); opacity: 1; } }
-        /* 重置按鈕 - 應移至 style.css */
-        #reset-button { background-color: #7f6a4f; color: white; padding: 10px 20px; border: none; border-radius: 5px; cursor: pointer; font-size: 1em; font-weight: bold; transition: background-color 0.2s, transform 0.1s; }
-        #reset-button:hover { background-color: #5a4a3a; }
-        #reset-button:active { transform: scale(0.95); }
-        /* 返回按鈕通用樣式 - 應移至 style.css */
-        .back-button { display: inline-block; padding: 10px 25px; margin-top: 10px; font-size: 1em; font-weight: bold; color: white; background-color: #aaa; border: none; border-radius: 5px; cursor: pointer; transition: background-color 0.2s; }
-        .back-button:hover { background-color: #888; }
-
-
-        /* --- 排行榜畫面樣式 --- */
-        #leaderboard-screen h2 { color: #5a3a1a; margin-bottom: 15px; }
-        .leaderboard-table-container { max-height: 400px; /* 設定最大高度以啟用滾動 */ overflow-y: auto; /* 內容超出時顯示垂直捲軸 */ border: 1px solid #ddd; margin-bottom: 15px; background-color: rgba(255, 255, 255, 0.4); }
-        #leaderboard-table { width: 100%; border-collapse: collapse; }
-        #leaderboard-table th, #leaderboard-table td { border: 1px solid #ccc; padding: 8px 10px; text-align: left; vertical-align: middle; } /* 確保垂直對齊 */
-        #leaderboard-table th { background-color: #e8dcbA; font-weight: bold; position: sticky; top: 0; z-index: 1; } /* 表頭固定 */
-        #leaderboard-table td:first-child { width: 50px; text-align: center; font-weight: bold; }
-        #leaderboard-table td:nth-child(2) { word-break: break-all; } /* 名字過長時換行 */
-        #leaderboard-table td:last-child { text-align: right; font-weight: bold; color: #c0392b; }
-        #leaderboard-loading { font-style: italic; color: #888; margin: 20px 0; }
-
-
-        /* 手機版調整 */
-        @media (max-width: 400px) {
-            .screen { padding: 15px; }
-            h1 { font-size: 1.6em; }
-            .game-info { font-size: 1em; }
-            #start-screen .start-button { width: 90%; padding: 12px 15px; font-size: 1.1em; }
-            .leaderboard-table-container { max-height: 300px; } /* 手機上高度可以小一點 */
-            #leaderboard-table th, #leaderboard-table td { padding: 6px 8px; font-size: 0.9em;}
-        }
-    </style>
+    <!-- <style>內聯樣式建議移到 style.css </style> -->
 </head>
 <body>
 
@@ -103,9 +27,14 @@
         <div id="game-board">
             <!-- 遊戲方塊會由 JavaScript 動態產生 -->
         </div>
-        <div id="combo-popup"></div> <!-- Combo 動畫文字 -->
-        <button id="reset-button">重新開始</button> <!-- 遊戲中的重置按鈕 -->
-        <button id="back-to-start-button" class="back-button" style="margin-left: 10px;">回主選單</button>
+        <!-- Combo 動畫文字 -->
+        <div id="combo-popup"></div>
+        <!-- 洗牌提示 (JS 會創建並添加到這裡) -->
+        <!-- <div id="shuffle-indicator" style="display: none;">洗牌中...</div> -->
+        <div class="game-controls"> <!-- 將按鈕包裝起來以便佈局 -->
+            <button id="reset-button">重新開始</button>
+            <button id="back-to-start-button" class="back-button" style="margin-left: 10px;">回主選單</button>
+        </div>
     </div>
 
     <!-- 排行榜畫面 -->
